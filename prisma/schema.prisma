@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Agency {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  createdAt    DateTime      @default(now())
+  users        User[]
+  destinations Destination[]
+  offers       TravelOffer[]
+}
+
+model User {
+  id       String  @id @default(cuid())
+  name     String
+  email    String  @unique
+  password String
+  role     String  @default("agent")
+  agencyId String
+  agency   Agency  @relation(fields: [agencyId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Destination {
+  id          String        @id @default(cuid())
+  name        String
+  country     String
+  description String        @db.Text
+  highlights  String[]
+  imageUrl    String?
+  agencyId    String
+  agency      Agency        @relation(fields: [agencyId], references: [id])
+  offers      TravelOffer[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model TravelOffer {
+  id               String         @id @default(cuid())
+  title            String
+  destinationId    String
+  destination      Destination    @relation(fields: [destinationId], references: [id])
+  agencyId         String
+  agency           Agency         @relation(fields: [agencyId], references: [id])
+  startDate        DateTime
+  endDate          DateTime
+  price            Float
+  currency         String         @default("BRL")
+  maxPax           Int            @default(20)
+  includes         String[]
+  excludes         String[]
+  itinerary        ItineraryDay[]
+  salesCopy        String?        @db.Text
+  whatsappText     String?        @db.Text
+  instagramCaption String?        @db.Text
+  status           String         @default("draft")
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model ItineraryDay {
+  id          String      @id @default(cuid())
+  offerId     String
+  offer       TravelOffer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  dayNumber   Int
+  title       String
+  description String      @db.Text
+  activities  String[]
+}
